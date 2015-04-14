@@ -8,7 +8,7 @@
 (require racket/include)
 
 ;; include Chris' Collision Code.
-(include (file "Esc_v3-Collisions.rkt"))
+(include (file "Esc_Collisions.rkt"))
 
 ;; User controls a circle
 (define player (circle 10 'solid 'red))
