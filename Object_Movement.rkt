@@ -1,17 +1,7 @@
 ;; Programmer: Jerra Khorn
 ;; Object_Movement.rkt
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(define (change-direction world-list direction)
-  (cons (make-w2 (w2-image (car world-list)) 
-                 (w2-coord (car world-list))
-                 (w2-speed (car world-list))
-                 direction
-                 (w2-ID (car world-list)))
-        (cdr world-list)))
-
+;; Updated by JK on April 24, 2014 2:17 PM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -34,16 +24,16 @@
 ;; Next four defines: border checkers for each side of the scene.
 
 (define (right-border-check world)
-  (<= WIDTH (posn-x (w2-coord world))))
+  (>= (posn-x (w2-coord world)) (- WIDTH 10)))
 
 (define (left-border-check world)
-  (>= 0 (posn-x (w2-coord world))))
+  (>= 10 (posn-x (w2-coord world))))
 
 (define (top-border-check world)
-  (>= 0 (posn-y (w2-coord world))))
+  (>= 10 (posn-y (w2-coord world))))
 
 (define (bottom-border-check world)
-  (<= HEIGHT (posn-y (w2-coord world))))
+  (<= (- HEIGHT 10) (posn-y (w2-coord world))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -58,34 +48,41 @@
 ;; passed to this procedure as an arugment is the
 ;; user controlled object.
 
-(define (move-player world)
+(define (move-player world world-list)
   (cond
     ((right-border-check world)
      (make-w2 player
-             (make-posn 1 (posn-y (w2-coord world)))
-             (w2-speed world)
-             (w2-direction world)
-             (w2-ID world)))
+              (make-posn (- WIDTH 25) (posn-y (w2-coord world)))
+              (w2-speed world)
+              (w2-direction world)
+              (w2-ID world)))
     ((left-border-check world)
      (make-w2 player
-             (make-posn (- WIDTH 1) (posn-y (w2-coord world)))
+             (make-posn 25 (posn-y (w2-coord world)))
              (w2-speed world)
              (w2-direction world)
              (w2-ID world)))
     ((top-border-check world)
      (make-w2 player
-             (make-posn (posn-x (w2-coord world)) (- HEIGHT 1))
+             (make-posn (posn-x (w2-coord world)) 25)
              (w2-speed world)
              (w2-direction world)
              (w2-ID world)))
     ((bottom-border-check world)
      (make-w2 player
-             (make-posn (posn-x (w2-coord world)) 1)
-             (w2-speed world)
-             (w2-direction world)
-             (w2-ID world)))
-    (else (tick world))))
+              (make-posn (posn-x (w2-coord world)) (- HEIGHT 25))
+              (w2-speed world)
+              (w2-direction world)
+              (w2-ID world)))
+    (else  
+     ;(tick world)
+     (collision-non-enemy world world-list)
+     )))
 
+
+
+(define (move-player2 world)
+  (tick world))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -99,29 +96,36 @@
   (cond
     ((right-border-check world)
      (make-w2 (w2-image world)
-              (make-posn (- WIDTH 1) (posn-y (w2-coord world)))
+              (make-posn (- WIDTH 11) (posn-y (w2-coord world)))
               (w2-speed world)
               'left
               (w2-ID world)))
     ((left-border-check world)
      (make-w2 (w2-image world)
-              (make-posn 1 (posn-y (w2-coord world)))
+              (make-posn 11 (posn-y (w2-coord world)))
               (w2-speed world)
               'right
               (w2-ID world)))
-    ((top-border-check world)
+    ((and (= (w2-ID world) 1) (top-border-check world))
      (make-w2 (w2-image world)
-              (make-posn (posn-x (w2-coord world)) 1)
+              (make-posn (posn-x (w2-coord world)) 11)
               (w2-speed world)
               'down
               (w2-ID world)))
     ((bottom-border-check world)
      (make-w2 (w2-image world)
-              (make-posn (posn-x (w2-coord world)) (- HEIGHT 1))
+              (make-posn (posn-x (w2-coord world)) (- HEIGHT 11))
               (w2-speed world)
               'up
               (w2-ID world)))
     (else (tick world))))
+
+
+;; only move enemies
+(define (enemy-border-check2 world)
+  (if (= (w2-ID world) 1)
+      (enemy-border-check world)
+      world))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -134,7 +138,7 @@
 ;; the new enemyo bjects.
 
 (define (move-enemy world-list)
-  (map enemy-border-check world-list))
+  (map enemy-border-check2 world-list))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -148,7 +152,7 @@
 ;; create a new world-list with the objects modofied.
 
 (define (object-movement world-list)
-  (cons (move-player (car world-list)) (move-enemy (cdr world-list))))
+  (cons (move-player (car world-list) (cdr world-list)) (move-enemy (cdr world-list))))
   ;;(collision-detection world-list))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
