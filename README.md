@@ -135,4 +135,5 @@ Our motto: When in doubt, set speed to 0.
 - Water boundaries will spawn along the border every 15 seconds to make the map smaller.
 - Enemies will change direction at random times.
 
-(link release to come)
+[demo]:https://github.com/oplS15projects/Esc/releases/tag/v3
+- **[Demo-Release][demo]**
