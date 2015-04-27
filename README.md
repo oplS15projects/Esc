@@ -129,6 +129,10 @@ We wanted to implement border of waves every 15 seconds onto the map. These wave
 Our motto: When in doubt, set speed to 0.
 
 ###How to Download and Run
-(link release)
+- Open and run Esc_main.rkt. file.
+- The player will spawn in the top left corner. Use the arrow keys to control the player.
+- Avoid collisions moving enemies.
+- Water boundaries will spawn along the border every 15 seconds to make the map smaller.
+- Emeies will change direction at random times.
 
-Open and run Esc_main.rkt. The player will spawn in the top left corner. Use the arrows to control the player.
+(link release to come)
