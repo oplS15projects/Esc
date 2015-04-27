@@ -133,6 +133,6 @@ Our motto: When in doubt, set speed to 0.
 - The player will spawn in the top left corner. Use the arrow keys to control the player.
 - Avoid collisions moving enemies.
 - Water boundaries will spawn along the border every 15 seconds to make the map smaller.
-- Emeies will change direction at random times.
+- Enemies will change direction at random times.
 
 (link release to come)
