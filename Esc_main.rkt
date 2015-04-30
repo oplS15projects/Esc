@@ -2,10 +2,11 @@
 
 ;; Programmers: Christopher Ly, Jerra Khorn
 ;; Ecs.rkt
-;; Created by JK on April 21, 2014 12:17 PM
-;; Updated by JK on April 21, 2014 8:06 PM
-;; Updated by CL on April 21, 2014 10:09 PM
-;; Updated by JK on April 24, 2014 2:17 PM
+;; Created by JK on April 21, 2015 12:17 PM
+;; Updated by JK on April 21, 2015 8:06 PM
+;; Updated by CL on April 21, 2015 10:09 PM
+;; Updated by JK on April 24, 2015 2:17 PM
+;; Updated by CL on April 29, 2015 9:50 PM
 
 (require 2htdp/universe)
 (require 2htdp/image)
@@ -14,12 +15,13 @@
 (require racket/include)
 (require math/base)
 
-;; include Chris' Collision Code.
+;; include Racket files
 (include (file "Collisions.rkt"))
 (include (file "Player_Controls.rkt"))
 (include (file "Object_Movement.rkt"))
-(include (file "Add_Water.rkt"))
+(include (file "Add_Water&Apple.rkt"))
 (include (file "Reorder-List.rkt"))
+
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -60,6 +62,7 @@
 ;; list of possible directions for the objects.
 (define directions '(up down left right))
 
+
 ;; /************************ Initialize Game Objects **************************/
 
 ;; User controls a circle
@@ -88,7 +91,9 @@
 (define deku-tree (bitmap "tiles/deku-tree2.png"))
 (define sand (bitmap "tiles/Sandv2.png"))
 (define water (bitmap "tiles/Waterv2.png"))
-(define game-over (bitmap "tiles/Game_Over.png"))
+(define gold-apple (bitmap "tiles/golden-apple.png"))
+(define game-over2 (bitmap "tiles/Game_Over2.png"))
+
 
 ;; /************************ End of Game Object Initialization ****************/
 
@@ -101,8 +106,20 @@
 (define center-y (/ HEIGHT 2))
 (define center-x (/ WIDTH 2))
 
+(define border (list 0 WIDTH 0 HEIGHT))
 
-  
+(define (x-min border)
+  (car border))
+
+(define (x-max border)
+  (cadr border))
+
+(define (y-min border)
+  (caddr border))
+
+(define (y-max border)
+  (cadddr border))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Object contains image, position, speed, and direction
@@ -124,10 +141,44 @@
 (define initial-world
   (list (make-w2 player (make-posn 25 25) speed 'none 2)
         (make-w2 deku-tree (make-posn center-x center-y) speed 'none 0)
-        ;;(make-w2 water (water-make-posn 50 0) speed 'none 0)
-        ;;(make-w2 water (water-make-posn 0 25) speed 'none 0)
         (make-w2 sand (make-posn 350 345) speed 'none 2)))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Game over menu: Allows for the user to restart the game after collision
+
+(define game-over-world (list (make-w2 game-over2
+                                       (make-posn (+ center-x 5) center-y)
+                                       0
+                                       'none
+                                       2)))
+
+;; game over: t
+;; game not over: f
+(define is-game-over? #f)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Determine Random Position between water and tree.
+
+;; height and width of deku-tree
+(define tree-width  (image-width deku-tree))
+(define tree-height (image-height deku-tree))
+
+;; x & y coordinates of deku-tree
+(define x-mid-1 (floor (- center-x (/ tree-width 2))))
+(define x-mid-2 (floor (+ center-x (/ tree-width 2))))
+(define y-mid-1 (floor (- center-y (/ tree-height 2))))
+(define y-mid-2 (floor (+ center-y (/ tree-height 2))))
+
+(define rand-pos
+   (make-posn (if (even? (random 10))
+                  (random-integer 0 x-mid-1)
+                  (random-integer x-mid-2 WIDTH))
+              (if (even? (random 10))
+                  (random-integer 0 y-mid-1)
+                  (random-integer y-mid-2 HEIGHT))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -165,30 +216,27 @@
 ;; a random posn in repect to the height of the canvas,
 ;; a random speed between 5 - 20, and a random direction.
 
-;; height and width of deku-tree
-(define tree-width  (image-width deku-tree))
-(define tree-height (image-height deku-tree))
-
-;; x & y coordinates of deku-tree
-(define x-mid-1 (floor (- center-x (/ tree-width 2))))
-(define x-mid-2 (floor (+ center-x (/ tree-width 2))))
-(define y-mid-1 (floor (- center-y (/ tree-height 2))))
-(define y-mid-2 (floor (+ center-y (/ tree-height 2))))
-
 (define (add-new-enemy world-list)
   (cons (car world-list)
-        (cons (make-w2 ;(enemy (random-item colors))
-                       (random-item enemy-lst)
-                       (make-posn (if (even? (random 10))
-                                      (random-integer 0 x-mid-1)
-                                      (random-integer x-mid-2 WIDTH))
-                                  (if (even? (random 10))
-                                      (random-integer 0 y-mid-1)
-                                      (random-integer y-mid-2 HEIGHT)))
+        (cons (make-w2 (random-item enemy-lst)
+                       rand-pos
                        (random-integer 5 20) 
                        (random-item directions)
+                       ;'none
                        1)
               (cdr world-list))))
+
+;; changes direction of enemies to a random direction
+(define (enemy-direction-ch world-list)
+  (define (helper world)
+    (if (= (w2-ID world) 1)
+        (make-w2 (w2-image world)
+                 (w2-coord world)
+                 (random-integer 6 20)
+                 (random-item directions)
+                 (w2-ID world))
+        world))
+  (map helper world-list))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;; MILESTONE 2 : Keeping track of time ;;;;;;;;;;;;;;;;;;;;;;;;
@@ -214,7 +262,70 @@
          (display rand)
          (display " ")
          (newline)))
+#| test
+(define display-border
+  (λ()
+    (begin (display (x-min border)) (newline)
+           (display (x-max border)) (newline)
+           (display (y-min border)) (newline)
+           (display (y-max border)) (newline))))
+|#
 
+;; returns a number not divisible by 15
+(define (check-rand num)
+  (if (divisible? num 15)
+      (+ num (random-integer 1 5))
+      num))
+
+;; version 2
+;; implemented change in enemy direction at some random time
+
+(define timer2
+  (let ((clock-tick 0)
+        (seconds 0)
+        (rand (random-integer 5 10)))
+    (lambda (world-list)
+      (cond ((= (collision-detection world-list) 1)
+             (begin (set! seconds 0)
+                    (set! is-game-over? #t)
+                    (set! rand (random-integer 5 10))
+                    (add-water "reset")
+                    game-over-world))
+            ((= (collision-detection world-list) 3)
+             (begin (add-water "reset")
+                    ;initial-world
+                    (cons (make-w2 player
+                                   (make-posn center-x 
+                                      (+ center-y (/ (height deku-tree) 2) 25))
+                                   speed
+                                   'none
+                                   2)
+                          (cdr initial-world))))
+            ((and (>= clock-tick 28) (not is-game-over?))
+             (begin (set! clock-tick 0)
+                    (set! seconds (+ seconds 1))
+                    (set! rand (check-rand rand))
+                    (display-time seconds)
+                    (display-rand rand)
+                    (if (= seconds rand)
+                        (begin 
+                          (set! rand (+ seconds (random-integer 1 10)))
+                          (enemy-direction-ch world-list))
+                        (if (and (not (= seconds 0)) 
+                                 (or (divisible? seconds 4) 
+                                     (divisible? seconds 5)))
+                            (cond ((and (divisible? seconds 15) (not (divisible? seconds 30)))
+                                   (reorder-lst (add-water (object-movement (add-new-enemy world-list)))))
+                                  ((and (divisible? seconds 15) (divisible? seconds 30))
+                                   ;; reorder list: player, enemies, water, tree, sand
+                                   (add-gold-apple (reorder-lst (add-water (object-movement (add-new-enemy world-list))))))
+                                  (else (object-movement (add-new-enemy world-list))))
+                                  ;;(else world-list))
+                            (object-movement world-list)))))
+            (else (begin (set! clock-tick (+ clock-tick 1))
+                     (object-movement world-list)))))))
+
+#|
 ;; old timer procedure
 (define timer
   (let ((clock-tick 0)
@@ -224,59 +335,14 @@
           (begin (set! clock-tick 0)
                  (set! seconds (+ seconds 1))
                  (display-time seconds)
-                 (if (and (not (= seconds 0)) (or (divisible? seconds 2) (divisible? seconds 5)))
-                     (if (divisible? seconds 15)
-                         (reorder-lst (add-water (object-movement (add-new-enemy world-list))))
-                         (object-movement (add-new-enemy world-list)))
+                 (if (and (not (= seconds 0)) (divisible? seconds 5))
+                     (reorder-lst (add-water (object-movement world-list)))
                      (object-movement world-list)))
           (begin (set! clock-tick (+ clock-tick 1))
                          (object-movement world-list))))))
+|# 
 
-;; changes direction of enemies to a random direction
-(define (enemy-direction-ch world-list)
-  (define (helper world)
-    (if (= (w2-ID world) 1)
-        (make-w2 (w2-image world)
-                 (w2-coord world)
-                 (w2-speed world)
-                 (random-item directions)
-                 (w2-ID world))
-        world))
-  (map helper world-list))
- 
-;; version 2
-;; implemented change in enemy direction at some random time
-(define timer2
-  (let ((clock-tick 0)
-        (seconds 0)
-        (rand (random-integer 5 20)))
-    (lambda (world-list)
-      (if (= clock-tick 28)
-          (begin (set! clock-tick 0)
-                 (set! seconds (+ seconds 1))
-                 (display-time seconds)
-                 (display-rand rand)
-                 (if (= seconds rand)
-                     (begin (set! rand (+ seconds (random-integer 1 10)))
-                            (enemy-direction-ch world-list))
-                     (if (and (not (= seconds 0)) 
-                              (or (divisible? seconds 2) 
-                                  (divisible? seconds 5)))
-                         (if (divisible? seconds 15)
-                             (reorder-lst (add-water (object-movement (add-new-enemy world-list))))
-                             (object-movement (add-new-enemy world-list)))
-                         (object-movement world-list))))
-          (begin (set! clock-tick (+ clock-tick 1))
-                 (object-movement world-list))))))
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; Display game over image.
-
-(define last-image
-  (λ (some-argument)
-    (begin (sleep 1)
-           (place-image game-over center-x center-y canvas))))
-  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; Basically the game starter
@@ -284,9 +350,9 @@
 (big-bang initial-world
           (on-tick timer2)
           (to-draw draw-scene)
-          (on-key control)
+          (on-key control-2)
           (on-release release)
-          (stop-when collision-detection last-image)
+          ;(stop-when collision-detection last-image)
           (name "[Esc]"))
 
 

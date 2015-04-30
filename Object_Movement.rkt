@@ -24,16 +24,16 @@
 ;; Next four defines: border checkers for each side of the scene.
 
 (define (right-border-check world)
-  (>= (posn-x (w2-coord world)) (- WIDTH 10)))
+  (>= (posn-x (w2-coord world)) (- (x-max border) 10)))
 
 (define (left-border-check world)
-  (>= 10 (posn-x (w2-coord world))))
+  (>= (x-min border) (posn-x (w2-coord world))))
 
 (define (top-border-check world)
-  (>= 10 (posn-y (w2-coord world))))
+  (>= (y-min border) (posn-y (w2-coord world))))
 
 (define (bottom-border-check world)
-  (<= (- HEIGHT 10) (posn-y (w2-coord world))))
+  (<= (- (y-max border) 10) (posn-y (w2-coord world))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -52,31 +52,33 @@
   (cond
     ((right-border-check world)
      (make-w2 player
-              (make-posn (- WIDTH 25) (posn-y (w2-coord world)))
+              (make-posn (- (x-max border) 25) (posn-y (w2-coord world)))
               (w2-speed world)
               (w2-direction world)
               (w2-ID world)))
     ((left-border-check world)
      (make-w2 player
-             (make-posn 25 (posn-y (w2-coord world)))
+             (make-posn (+ (x-min border) 25) (posn-y (w2-coord world)))
              (w2-speed world)
              (w2-direction world)
              (w2-ID world)))
     ((top-border-check world)
      (make-w2 player
-             (make-posn (posn-x (w2-coord world)) 25)
+             (make-posn (posn-x (w2-coord world)) (+ (y-min border) 25))
              (w2-speed world)
              (w2-direction world)
              (w2-ID world)))
     ((bottom-border-check world)
      (make-w2 player
-              (make-posn (posn-x (w2-coord world)) (- HEIGHT 25))
+              (make-posn (posn-x (w2-coord world)) (- (y-max border) 25))
               (w2-speed world)
               (w2-direction world)
               (w2-ID world)))
     (else  
      ;(tick world)
-     (collision-non-enemy world world-list)
+     ;(collision-non-enemy (collision-tree world world-list) world-list)
+     ;(collision-non-enemy world world-list)
+     (collision-tree world world-list)
      )))
 
 
@@ -96,25 +98,25 @@
   (cond
     ((right-border-check world)
      (make-w2 (w2-image world)
-              (make-posn (- WIDTH 11) (posn-y (w2-coord world)))
+              (make-posn (- (x-max border) 11) (posn-y (w2-coord world)))
               (w2-speed world)
               'left
               (w2-ID world)))
     ((left-border-check world)
      (make-w2 (w2-image world)
-              (make-posn 11 (posn-y (w2-coord world)))
+              (make-posn (+ (x-min border) 11) (posn-y (w2-coord world)))
               (w2-speed world)
               'right
               (w2-ID world)))
     ((and (= (w2-ID world) 1) (top-border-check world))
      (make-w2 (w2-image world)
-              (make-posn (posn-x (w2-coord world)) 11)
+              (make-posn (posn-x (w2-coord world)) (+ (y-min border) 11))
               (w2-speed world)
               'down
               (w2-ID world)))
     ((bottom-border-check world)
      (make-w2 (w2-image world)
-              (make-posn (posn-x (w2-coord world)) (- HEIGHT 11))
+              (make-posn (posn-x (w2-coord world)) (- (y-max border) 11))
               (w2-speed world)
               'up
               (w2-ID world)))

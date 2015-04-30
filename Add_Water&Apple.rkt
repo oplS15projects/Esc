@@ -1,4 +1,6 @@
-;; Sand make-posn procedure: 
+;; /************************ Add Water ****************************************/
+
+;; Water make-posn procedure: 
 ;; args: x and y coordinates of top left corner
 (define (water-make-posn x-coord y-coord)
   (make-posn (- (+ x-coord (width water)) (/ (width water) 2)) (- (+ y-coord (height water)) (/ (height water) 2))))
@@ -53,8 +55,35 @@
         (vert 26)
         (hori 13))
     (lambda (world-list)
-      (begin (set! start next-start)
+      (if (string? world-list)
+          (begin (set! start (cons 0 0))
+                 (set! next-start start)
+                 (set! vert 26)
+                 (set! hori 13)
+                 (set! border (list 0 WIDTH 0 HEIGHT))
+                 )
+          (begin (set! start next-start)
              (set! next-start (cons (+ (car start) 50) (+ (cdr start) 25)))
              (set! vert (- vert 2))
              (set! hori (- hori 2))
-             (add-water2 (find-posn start (+ vert 2) (+ hori 2)) world-list)))))
+             (set! border (list (+ (x-min border) 50)
+                                (- (x-max border) 50) 
+                                (+ (y-min border) 25) 
+                                (- (y-max border) 25)))
+             (add-water2 (find-posn start (+ vert 2) (+ hori 2)) world-list)))
+      )))
+
+;; /******************************** Add Gold Apple ***************************/
+
+(define (add-gold-apple world-list)
+  (if (eq? deku-tree (w2-image (car world-list)))
+      (cons (car world-list)
+            (cons (make-w2 gold-apple
+                           (make-posn (posn-x (w2-coord (car world-list))) 
+                                      (+ (posn-y (w2-coord (car world-list))) (/ (height deku-tree) 2) 25))
+                           0
+                           'none
+                           3)
+                  (cdr world-list)))
+      (cons (car world-list) (add-gold-apple (cdr world-list)))))
+ 

@@ -65,7 +65,12 @@
     ((key=? a-key "down")  (change-speed (change-direction world-list 'down) 10))
     ;; ((key=? a-key "c")     (make-w2 (make-posn center-x center-y) speed 'none))
     ((key=? a-key " ")     (cons (make-w2 player
-                                          (make-posn 325 450)
+                                          (make-posn (if (even? (random 10))
+                                                         (random-integer 0 x-mid-1)
+                                                         (random-integer x-mid-2 WIDTH))
+                                                     (if (even? (random 10))
+                                                         (random-integer 0 y-mid-1)
+                                                         (random-integer y-mid-2 HEIGHT)))
                                           10
                                           'none
                                           2)
@@ -73,28 +78,30 @@
     (else world-list)))
 
 (define (control-2 world-list a-key)
-  (cond
-    ((key=? a-key "left")  
-     (cond 
-       ((or (left-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (change-direction world-list 'right))
-       (else (change-speed (change-direction world-list 'left) 10))))
-    ((key=? a-key "right") 
-     (cond 
-       ((or (right-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (change-direction world-list 'left))
-       (else (change-speed (change-direction world-list 'right) 10))))
-    ((key=? a-key "up")
-     (cond 
-       ((or (top-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (change-direction world-list 'down))
-       (else (change-speed (change-direction world-list 'up) 10))))
-    ((key=? a-key "down")
-     (cond 
-       ((or (bottom-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (change-direction world-list 'up))
-       (else (change-speed (change-direction world-list 'down) 10))))
-    (else world-list)))
+  (if (eq? (w2-image (car world-list)) game-over2)
+      (if (key=? a-key "\r")
+          (begin (set! is-game-over? #f)
+                initial-world)
+          world-list)
+      (cond
+        ((key=? a-key "left")  (change-speed (change-direction world-list 'left) 10))
+        ((key=? a-key "right") (change-speed (change-direction world-list 'right) 10))
+        ((key=? a-key "up")    (change-speed (change-direction world-list 'up) 10))
+        ((key=? a-key "down")  (change-speed (change-direction world-list 'down) 10))
+        ;; ((key=? a-key "c")     (make-w2 (make-posn center-x center-y) speed 'none))
+        ((key=? a-key " ")     (cons (make-w2 player
+                                              (make-posn (if (even? (random 10))
+                                                             (random-integer 0 x-mid-1)
+                                                             (random-integer x-mid-2 WIDTH))
+                                                         (if (even? (random 10))
+                                                             (random-integer 0 y-mid-1)
+                                                             (random-integer y-mid-2 HEIGHT)))
+                                              10
+                                              'none
+                                              2)
+                                     (cdr world-list)))
+        (else world-list))))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -105,30 +112,6 @@
 ;; then a new world is returned with the same properties at the
 ;; first argument except with its direction changed to none. Else,
 ;; the first argument is returned.
-
-(define (release2 world-list a-key)
-  (cond 
-    ((key=? a-key "left")
-     (cond
-       ((or (left-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (begin (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'none (w2-ID (car world-list))) (cdr world-list)) (change-direction world-list 'right)))
-       (else (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'none (w2-ID (car world-list))) (cdr world-list)))))
-    ((key=? a-key "right")
-     (cond
-       ((or (right-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'left (w2-ID (car world-list))) (cdr world-list)))
-       (else (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'none (w2-ID (car world-list))) (cdr world-list)))))
-    ((key=? a-key "up")
-     (cond
-       ((or (top-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-        (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'down (w2-ID (car world-list))) (cdr world-list)))
-       (else (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'none (w2-ID (car world-list))) (cdr world-list)))))
-     ((key=? a-key "down")
-      (cond
-        ((or (bottom-border-check (car world-list)) (collision-non-enemy (car world-list) (cdr world-list)))
-         (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'up (w2-ID (car world-list))) (cdr world-list)))
-        (else (cons (make-w2 player (w2-coord (car world-list)) (w2-speed (car world-list)) 'none (w2-ID (car world-list))) (cdr world-list)))))
-     (else world-list)))
       
 (define (release world-list a-key)
   (if (or (key=? a-key "left")
